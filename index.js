@@ -1,29 +1,44 @@
-// src/index.js
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const bodyParser = require('body-parser');
+
+// Routes
 const authRoutes = require('./routes/auth');
 const cusDetails = require('./routes/cusDetails');
 const reports = require('./routes/report');
 const masterRoutes = require('./routes/master');
-const bodyParser = require('body-parser');
 const departmentRoutes = require('./routes/department');
 const categoryRoutes = require('./routes/category');
 const subcategoryRoutes = require('./routes/subcategory');
+
 // Load environment variables
 dotenv.config();
 
 const app = express();
 
+// CORS Configuration
+const allowedOrigins = ['https://reportapp-ruby.vercel.app'];
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true, // If using cookies or Authorization headers
+}));
+
 // Middleware
-app.use(cors());            // Enable CORS for cross-origin requests
-app.use(express.json());     // Parse JSON requests
+app.use(express.json()); // Parse JSON requests
 app.use(bodyParser.json());
+
 // Routes
 app.use('/auth', authRoutes);
 app.use('/verify', cusDetails);
-app.use('/reports', reports );
-
+app.use('/reports', reports);
 app.use('/master', masterRoutes);
 app.use('/department', departmentRoutes);
 app.use('/category', categoryRoutes);
