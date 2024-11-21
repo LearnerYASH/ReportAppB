@@ -1,7 +1,6 @@
-import express, { json } from 'express';
+import express from 'express';
 import cors from 'cors';
 import { config } from 'dotenv';
-import { json as _json } from 'body-parser';
 
 // Routes
 import authRoutes from './routes/auth';
@@ -32,10 +31,8 @@ app.use(cors({
 }));
 
 // Middleware
-app.use(json()); // Parse JSON requests
-app.use(_json());
+app.use(express.json()); // Parse JSON requests (no need for body-parser)
 
-// Routes
 app.use('/auth', authRoutes);
 app.use('/verify', cusDetails);
 app.use('/reports', reports);
