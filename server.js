@@ -18,7 +18,13 @@ dotenv.config();
 const app = express();
 
 // CORS Configuration
-const allowedOrigins = ['https://reportapp-ruby.vercel.app'];
+const allowedOrigins = [
+  'http://localhost:3000', // Local frontend during development
+  'https://reportapp-ruby.vercel.app', // Deployed frontend URL,
+   'https://reportapp-learneryashs-projects.vercel.app',
+   'https://reportapp-ruby.vercel.app/login'
+];
+
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -28,7 +34,7 @@ app.use(cors({
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  credentials: true, // If using cookies or Authorization headers
+  credentials: true, // Allow credentials (cookies/authorization headers)
 }));
 
 // Middleware
