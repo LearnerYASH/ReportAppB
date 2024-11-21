@@ -36,9 +36,9 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true, // Allow credentials (cookies/authorization headers)
 }));
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
-});
+// app.get('*', (req, res) => {
+//   res.sendFile(path.join(__dirname, 'build', 'index.html'));
+// });
 
 // Middleware
 app.use(express.json()); // Parse JSON requests
