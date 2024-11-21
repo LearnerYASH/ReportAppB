@@ -1,19 +1,19 @@
-const express = require('express');
-const cors = require('cors');
-const dotenv = require('dotenv');
-const bodyParser = require('body-parser');
+import express, { json } from 'express';
+import cors from 'cors';
+import { config } from 'dotenv';
+import { json as _json } from 'body-parser';
 
 // Routes
-const authRoutes = require('./routes/auth');
-const cusDetails = require('./routes/cusDetails');
-const reports = require('./routes/report');
-const masterRoutes = require('./routes/master');
-const departmentRoutes = require('./routes/department');
-const categoryRoutes = require('./routes/category');
-const subcategoryRoutes = require('./routes/subcategory');
+import authRoutes from './routes/auth';
+import cusDetails from './routes/cusDetails';
+import reports from './routes/report';
+import masterRoutes from './routes/master';
+import departmentRoutes from './routes/department';
+import categoryRoutes from './routes/category';
+import subcategoryRoutes from './routes/subcategory';
 
 // Load environment variables
-dotenv.config();
+config();
 
 const app = express();
 
@@ -32,8 +32,8 @@ app.use(cors({
 }));
 
 // Middleware
-app.use(express.json()); // Parse JSON requests
-app.use(bodyParser.json());
+app.use(json()); // Parse JSON requests
+app.use(_json());
 
 // Routes
 app.use('/auth', authRoutes);
