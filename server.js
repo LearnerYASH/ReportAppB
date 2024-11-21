@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const bodyParser = require('body-parser');
-
+const path = require('path');
 // Routes
 const authRoutes = require('./routes/auth');
 const cusDetails = require('./routes/cusDetails');
@@ -36,6 +36,9 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true, // Allow credentials (cookies/authorization headers)
 }));
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
 
 // Middleware
 app.use(express.json()); // Parse JSON requests
