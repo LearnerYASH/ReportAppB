@@ -18,7 +18,7 @@ dotenv.config();
 const app = express();
 
 // CORS Configuration
-const allowedOrigins = ['http://localhost:3000'];
+const allowedOrigins = ['https://reportapp-ruby.vercel.app'];
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
