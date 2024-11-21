@@ -20,14 +20,14 @@ app.use(cors());            // Enable CORS for cross-origin requests
 app.use(express.json());     // Parse JSON requests
 app.use(bodyParser.json());
 // Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/verify', cusDetails);
-app.use('/api/reports', reports );
+app.use('/auth', authRoutes);
+app.use('/verify', cusDetails);
+app.use('/reports', reports );
 
-app.use('/api/master', masterRoutes);
-app.use('/api/department', departmentRoutes);
-app.use('/api/category', categoryRoutes);
-app.use('/api/subcategory', subcategoryRoutes);
+app.use('/master', masterRoutes);
+app.use('/department', departmentRoutes);
+app.use('/category', categoryRoutes);
+app.use('/subcategory', subcategoryRoutes);
 
 // Basic route to check if server is running
 app.get('/', (req, res) => {
