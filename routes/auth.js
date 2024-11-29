@@ -5,7 +5,6 @@ const jwt = require('jsonwebtoken');
 const CryptoJS = require('crypto-js');
 const JWT_SECRET = 'your_secret_key';
 const redis = require('../redisClient');
-
 router.post('/login', async (req, res) => {
     const { emailid, userpwd } = req.body;
 
@@ -14,35 +13,11 @@ router.post('/login', async (req, res) => {
     }
 
     try {
-        // Check if user data is cached in Redis
-        const cachedUser = await redis.get(`user:${emailid}`);
-        if (cachedUser) {
-            const user = JSON.parse(cachedUser);
-
-            // Validate password
-            if (user.UserPwd && decryptPassword(user.UserPwd) !== userpwd) {
-                return res.status(401).json({ success: false, message: 'Invalid password' });
-            }
-
-            // Generate token and respond
-            const token = jwt.sign(
-                { customerId: user.CustomerId, userName: user.UserName },
-                JWT_SECRET,
-                { expiresIn: '1h' }
-            );
-            return res.json({
-                success: true,
-                token,
-                tokenExpiration: Date.now() + 3600000,
-                customerId: user.CustomerId,
-                UserName: user.UserName
-            });
-        }
-
-        // If not cached, query the database
+        // Connect to the database
         const pool = await connectToDB();
         if (!pool) throw new Error('Database connection failed');
 
+        // Query the database for the user
         const userResult = await pool.request()
             .input('emailid', sql.VarChar, emailid)
             .query(`
@@ -59,7 +34,7 @@ router.post('/login', async (req, res) => {
 
         // Validate password
         if (user.UserPwd) {
-            const decryptedPwd = decryptPassword(user.UserPwd);
+            const decryptedPwd = decryptPassword(user.UserPwd); // Ensure this function is defined
             if (decryptedPwd !== userpwd) {
                 return res.status(401).json({ success: false, message: 'Invalid password' });
             }
@@ -67,15 +42,13 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ success: false, message: 'Invalid password' });
         }
 
-        // Cache user data in Redis for 10 minutes
-        await redis.setex(`user:${emailid}`, 600, JSON.stringify(user));
-
         // Generate token and respond
         const token = jwt.sign(
             { customerId: user.CustomerId, userName: user.UserName },
             JWT_SECRET,
             { expiresIn: '1h' }
         );
+
         res.json({
             success: true,
             token,
@@ -88,6 +61,7 @@ router.post('/login', async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 });
+
 
 router.get('/get-product-key', async (req, res) => {
     const { customerId } = req.query;
