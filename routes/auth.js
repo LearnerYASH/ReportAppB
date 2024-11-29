@@ -4,6 +4,8 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const CryptoJS = require('crypto-js');
 const JWT_SECRET = 'your_secret_key';
+const redis = require('./redisClient');
+
 router.post('/login', async (req, res) => {
     const { emailid, userpwd } = req.body;
 
@@ -12,14 +14,39 @@ router.post('/login', async (req, res) => {
     }
 
     try {
-        const pool = await connectToDB();
-        if (!pool) throw new Error('Database connection is not established');
+        // Check if user data is cached in Redis
+        const cachedUser = await redis.get(`user:${emailid}`);
+        if (cachedUser) {
+            const user = JSON.parse(cachedUser);
 
-        // Query to validate user
+            // Validate password
+            if (user.UserPwd && decryptPassword(user.UserPwd) !== userpwd) {
+                return res.status(401).json({ success: false, message: 'Invalid password' });
+            }
+
+            // Generate token and respond
+            const token = jwt.sign(
+                { customerId: user.CustomerId, userName: user.UserName },
+                JWT_SECRET,
+                { expiresIn: '1h' }
+            );
+            return res.json({
+                success: true,
+                token,
+                tokenExpiration: Date.now() + 3600000,
+                customerId: user.CustomerId,
+                UserName: user.UserName
+            });
+        }
+
+        // If not cached, query the database
+        const pool = await connectToDB();
+        if (!pool) throw new Error('Database connection failed');
+
         const userResult = await pool.request()
             .input('emailid', sql.VarChar, emailid)
             .query(`
-                SELECT UserPwd, CustomerId, UserName
+                SELECT TOP 1 UserPwd, CustomerId, UserName
                 FROM MstUsers
                 WHERE EmailId = @emailid
             `);
@@ -30,19 +57,9 @@ router.post('/login', async (req, res) => {
 
         const user = userResult.recordset[0];
 
+        // Validate password
         if (user.UserPwd) {
-            const key = CryptoJS.MD5("i.Next.!PRK10").toString();
-            const iv = CryptoJS.enc.Hex.parse("f0032d1d004cad3b");
-            const encryptedData = CryptoJS.enc.Base64.parse(user.UserPwd);
-
-            const decrypted = CryptoJS.TripleDES.decrypt(
-                { ciphertext: encryptedData },
-                CryptoJS.enc.Hex.parse(key),
-                { iv: iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 }
-            );
-
-            const decryptedPwd = decrypted.toString(CryptoJS.enc.Utf8);
-
+            const decryptedPwd = decryptPassword(user.UserPwd);
             if (decryptedPwd !== userpwd) {
                 return res.status(401).json({ success: false, message: 'Invalid password' });
             }
@@ -50,20 +67,25 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ success: false, message: 'Invalid password' });
         }
 
-        // Generate JWT token
-        const token = jwt.sign({ customerId: user.CustomerId }, JWT_SECRET, { expiresIn: '1h' });
-        const tokenExpiration = Date.now() + 3600000;
+        // Cache user data in Redis for 10 minutes
+        await redis.setex(`user:${emailid}`, 600, JSON.stringify(user));
 
+        // Generate token and respond
+        const token = jwt.sign(
+            { customerId: user.CustomerId, userName: user.UserName },
+            JWT_SECRET,
+            { expiresIn: '1h' }
+        );
         res.json({
             success: true,
             token,
-            tokenExpiration,
+            tokenExpiration: Date.now() + 3600000,
             customerId: user.CustomerId,
             UserName: user.UserName
         });
     } catch (error) {
-        console.error('Error during login:', error.message);
-        res.status(500).json({ success: false, message: 'Server error', error: error.message });
+        console.error('Login error:', error.message);
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 });
 
