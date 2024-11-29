@@ -4,7 +4,6 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const CryptoJS = require('crypto-js');
 const JWT_SECRET = 'your_secret_key';
-const redis = require('../redisClient');
 router.post('/login', async (req, res) => {
     const { emailid, userpwd } = req.body;
 
@@ -13,15 +12,14 @@ router.post('/login', async (req, res) => {
     }
 
     try {
-        // Connect to the database
         const pool = await connectToDB();
-        if (!pool) throw new Error('Database connection failed');
+        if (!pool) throw new Error('Database connection is not established');
 
-        // Query the database for the user
+        // Query to validate user
         const userResult = await pool.request()
             .input('emailid', sql.VarChar, emailid)
             .query(`
-                SELECT TOP 1 UserPwd, CustomerId, UserName
+                SELECT UserPwd, CustomerId, UserName
                 FROM MstUsers
                 WHERE EmailId = @emailid
             `);
@@ -32,9 +30,19 @@ router.post('/login', async (req, res) => {
 
         const user = userResult.recordset[0];
 
-        // Validate password
         if (user.UserPwd) {
-            const decryptedPwd = decryptPassword(user.UserPwd); // Ensure this function is defined
+            const key = CryptoJS.MD5("i.Next.!PRK10").toString();
+            const iv = CryptoJS.enc.Hex.parse("f0032d1d004cad3b");
+            const encryptedData = CryptoJS.enc.Base64.parse(user.UserPwd);
+
+            const decrypted = CryptoJS.TripleDES.decrypt(
+                { ciphertext: encryptedData },
+                CryptoJS.enc.Hex.parse(key),
+                { iv: iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 }
+            );
+
+            const decryptedPwd = decrypted.toString(CryptoJS.enc.Utf8);
+
             if (decryptedPwd !== userpwd) {
                 return res.status(401).json({ success: false, message: 'Invalid password' });
             }
@@ -42,26 +50,22 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ success: false, message: 'Invalid password' });
         }
 
-        // Generate token and respond
-        const token = jwt.sign(
-            { customerId: user.CustomerId, userName: user.UserName },
-            JWT_SECRET,
-            { expiresIn: '1h' }
-        );
+        // Generate JWT token
+        const token = jwt.sign({ customerId: user.CustomerId }, JWT_SECRET, { expiresIn: '1h' });
+        const tokenExpiration = Date.now() + 3600000;
 
         res.json({
             success: true,
             token,
-            tokenExpiration: Date.now() + 3600000,
+            tokenExpiration,
             customerId: user.CustomerId,
             UserName: user.UserName
         });
     } catch (error) {
-        console.error('Login error:', error.message);
-        res.status(500).json({ success: false, message: 'Server error' });
+        console.error('Error during login:', error.message);
+        res.status(500).json({ success: false, message: 'Server error', error: error.message });
     }
 });
-
 
 router.get('/get-product-key', async (req, res) => {
     const { customerId } = req.query;
@@ -92,4 +96,3 @@ router.get('/get-product-key', async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error', error: error.message });
     }
 });
-module.exports = router;
