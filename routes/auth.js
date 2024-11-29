@@ -4,28 +4,24 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const CryptoJS = require('crypto-js');
 const JWT_SECRET = 'your_secret_key';
-
 router.post('/login', async (req, res) => {
     const { emailid, userpwd } = req.body;
-    
+
     if (!emailid) {
         return res.status(400).json({ success: false, message: 'Email ID is required' });
     }
 
     try {
         const pool = await connectToDB();
+        if (!pool) throw new Error('Database connection is not established');
 
-        if (!pool) {
-            throw new Error('Database connection is not established');
-        }
-
-        // Query to find user by emailid
+        // Query to validate user
         const userResult = await pool.request()
             .input('emailid', sql.VarChar, emailid)
             .query(`
-                SELECT UserPwd, CustomerId , UserName
+                SELECT UserPwd, CustomerId, UserName
                 FROM MstUsers
-                WHERE EmailId = @emailid 
+                WHERE EmailId = @emailid
             `);
 
         if (userResult.recordset.length === 0) {
@@ -35,46 +31,24 @@ router.post('/login', async (req, res) => {
         const user = userResult.recordset[0];
 
         if (user.UserPwd) {
-            let decryptedPwd;
-            try {
-                // Decrypt the password with CryptoJS
-                const key = CryptoJS.MD5("i.Next.!PRK10").toString();
-                const iv = CryptoJS.enc.Hex.parse("f0032d1d004cad3b");
-                const encryptedData = CryptoJS.enc.Base64.parse(user.UserPwd);
+            const key = CryptoJS.MD5("i.Next.!PRK10").toString();
+            const iv = CryptoJS.enc.Hex.parse("f0032d1d004cad3b");
+            const encryptedData = CryptoJS.enc.Base64.parse(user.UserPwd);
 
-                const decrypted = CryptoJS.TripleDES.decrypt(
-                    { ciphertext: encryptedData },
-                    CryptoJS.enc.Hex.parse(key),
-                    { iv: iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 }
-                );
-                
-                decryptedPwd = decrypted.toString(CryptoJS.enc.Utf8);
+            const decrypted = CryptoJS.TripleDES.decrypt(
+                { ciphertext: encryptedData },
+                CryptoJS.enc.Hex.parse(key),
+                { iv: iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 }
+            );
 
-                if (decryptedPwd !== userpwd) {
-                    return res.status(401).json({ success: false, message: 'Invalid password' });
-                }
-            } catch (decryptionError) {
-                console.error('Error during password decryption:', decryptionError.message);
-                return res.status(500).json({ success: false, message: 'Error processing password' });
+            const decryptedPwd = decrypted.toString(CryptoJS.enc.Utf8);
+
+            if (decryptedPwd !== userpwd) {
+                return res.status(401).json({ success: false, message: 'Invalid password' });
             }
         } else if (userpwd) {
             return res.status(401).json({ success: false, message: 'Invalid password' });
         }
-
-        // Retrieve additional data from MstProductKey using the CustomerId
-        const productKeyResult = await pool.request()
-            .input('customerId', sql.VarChar, user.CustomerId)
-            .query(`
-                SELECT ServerIp, SqlPort, SQLUserId, SQLPwd, ClientDbName
-                FROM MstProductKey
-                WHERE CustomerId = @customerId
-            `);
-
-        if (productKeyResult.recordset.length === 0) {
-            return res.status(404).json({ success: false, message: 'Product key details not found for customer' });
-        }
-
-        const productKey = productKeyResult.recordset[0];
 
         // Generate JWT token
         const token = jwt.sign({ customerId: user.CustomerId }, JWT_SECRET, { expiresIn: '1h' });
@@ -85,12 +59,7 @@ router.post('/login', async (req, res) => {
             token,
             tokenExpiration,
             customerId: user.CustomerId,
-            UserName: user.UserName,
-            serverIp: productKey.ServerIp,
-            sqlPort: productKey.SqlPort,
-            sqlUserId: productKey.SQLUserId,
-            sqlPwd: productKey.SQLPwd,
-            clientDbName: productKey.ClientDbName
+            UserName: user.UserName
         });
     } catch (error) {
         console.error('Error during login:', error.message);
@@ -98,4 +67,32 @@ router.post('/login', async (req, res) => {
     }
 });
 
-module.exports = router;
+router.get('/get-product-key', async (req, res) => {
+    const { customerId } = req.query;
+
+    if (!customerId) {
+        return res.status(400).json({ success: false, message: 'CustomerId is required' });
+    }
+
+    try {
+        const pool = await connectToDB();
+        if (!pool) throw new Error('Database connection is not established');
+
+        const productKeyResult = await pool.request()
+            .input('customerId', sql.VarChar, customerId)
+            .query(`
+                SELECT ServerIp, SqlPort, SQLUserId, SQLPwd, ClientDbName
+                FROM MstProductKey
+                WHERE CustomerId = @customerId
+            `);
+
+        if (productKeyResult.recordset.length === 0) {
+            return res.status(404).json({ success: false, message: 'Product key details not found' });
+        }
+
+        res.json({ success: true, productKey: productKeyResult.recordset[0] });
+    } catch (error) {
+        console.error('Error fetching product key:', error.message);
+        res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    }
+});
