@@ -38,7 +38,7 @@ router.post('/login', async (req, res) => {
             let decryptedPwd;
             try {
                 // Decrypt the password with CryptoJS
-                const key = CryptoJS.MD5("i.Next.!").toString();
+                const key = CryptoJS.MD5("i.Next.!PRK10").toString();
                 const iv = CryptoJS.enc.Hex.parse("f0032d1d004cad3b");
                 const encryptedData = CryptoJS.enc.Base64.parse(user.UserPwd);
 
