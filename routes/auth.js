@@ -4,7 +4,7 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const CryptoJS = require('crypto-js');
 const JWT_SECRET = 'your_secret_key';
-const redis = require('./redisClient');
+const redis = require('../redisClient');
 
 router.post('/login', async (req, res) => {
     const { emailid, userpwd } = req.body;
