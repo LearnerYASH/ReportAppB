@@ -52,12 +52,11 @@ router.post('/login', async (req, res) => {
 
         // Generate JWT token
         const token = jwt.sign({ customerId: user.CustomerId }, JWT_SECRET, { expiresIn: '1h' });
-        const tokenExpiration = Date.now() + 3600000;
+        
 
         res.json({
             success: true,
             token,
-            tokenExpiration,
             customerId: user.CustomerId,
             UserName: user.UserName
         });
