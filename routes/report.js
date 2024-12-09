@@ -69,6 +69,47 @@ router.post('/execute', async (req, res) => {
         res.status(500).json({ message: 'Error executing stored procedure', error: error.message });
     }
 });
+router.post('/executebatch', async (req, res) => {
+    const { reports, dbConfig } = req.body;
+    const pool = new sql.ConnectionPool({
+        user: dbConfig.sqlUserId,
+        password: dbConfig.sqlPwd,
+        server: dbConfig.serverIp,
+        port: parseInt(dbConfig.sqlPort),
+        database: dbConfig.clientDbName,
+        options: {
+            encrypt: true,
+            trustServerCertificate: true,
+        },
+    });
+
+    try {
+        await pool.connect();
+        const results = {};
+
+        for (const report of reports) {
+            const { procedureName, fromDate, toDate, reportId, branchId } = report;
+
+            const query = `EXEC ${procedureName} @cReportId, @dFromDt, @dToDt, @cBranchId`;
+            const result = await pool.request()
+                .input('cReportId', sql.VarChar, reportId)
+                .input('dFromDt', sql.Date, fromDate)
+                .input('dToDt', sql.Date, toDate)
+                .input('cBranchId', sql.Char(3), branchId)
+                .query(query);
+
+            results[reportId] = result.recordset; // Save each report's data
+        }
+
+        res.json(results);
+    } catch (error) {
+        console.error('Error executing batch reports:', error);
+        res.status(500).json({ message: 'Error executing batch reports', error: error.message });
+    } finally {
+        pool.close();
+    }
+});
+
 
 router.post('/getBranches', async (req, res) => {
     const { dbConfig } = req.body;
