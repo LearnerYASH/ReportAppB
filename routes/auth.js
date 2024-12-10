@@ -80,7 +80,7 @@ router.get('/get-product-key', async (req, res) => {
         const productKeyResult = await pool.request()
             .input('customerId', sql.VarChar, customerId)
             .query(`
-                SELECT ServerIp, SqlPort, SQLUserId, SQLPwd, ClientDbName
+                SELECT ServerIp, SqlPort, SQLUserId, SQLPwd, ClientDbName, HoBranchId
                 FROM MstProductKey
                 WHERE CustomerId = @customerId
             `);
