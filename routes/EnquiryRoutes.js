@@ -19,7 +19,11 @@ router.get('/Customer', async (req, res) => {
       FROM [iNextInhouseErp].[dbo].[MstCustomer]
     `;
     const result = await pool.request().query(query);
-    res.json(result.recordset);
+
+    // Remove the first row
+    const filteredResult = result.recordset.slice(1);
+
+    res.json(filteredResult);
   } catch (error) {
     console.error('Error fetching customer data:', error);
     res.status(500).send('Error fetching customer data');
@@ -27,3 +31,4 @@ router.get('/Customer', async (req, res) => {
 });
 
 module.exports = router;
+
