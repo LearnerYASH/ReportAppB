@@ -114,6 +114,85 @@ router.post('/AddProduct', async (req, res) => {
   }
 });
 
+router.post('/AddEnquiry', async (req, res) => {
+  const pool = await connectToDB();
+  const transaction = new sql.Transaction(pool);
+
+  try {
+    const {
+      CustomerId,
+      EnquiryDt,
+      DemoDate,
+      NextDemoDate,
+      AssignedUserId,
+      CallMode,
+      IsClosed,
+      ClosedStr,
+      Remarks,
+      ActionType,
+      Details, // Array of detail objects: [{ DemoDate, UserId, Remarks, NextDemoDate, IsNextDemo, CallMode, AttachmentName, ActionType }]
+    } = req.body;
+
+    await transaction.begin();
+
+    // Insert into `MstCustomerEnquiryHead`
+    const insertHeadQuery = `
+      INSERT INTO [MstCustomerEnquiryHead] 
+      (CustomerId, EnquiryDt, DemoDate, NextDemoDate, AssignedUserId, CallMode, IsClosed, ClosedStr, Remarks, CreatedOn) 
+      OUTPUT INSERTED.EnquiryId
+      VALUES 
+      (@CustomerId, @EnquiryDt, @DemoDate, @NextDemoDate, @AssignedUserId, @CallMode, @IsClosed, @ClosedStr, @Remarks, GETDATE());
+    `;
+
+    const headResult = await transaction.request()
+      .input('CustomerId', sql.VarChar, CustomerId)
+      .input('EnquiryDt', sql.Date, EnquiryDt)
+      .input('DemoDate', sql.Date, DemoDate)
+      .input('NextDemoDate', sql.Date, NextDemoDate)
+      .input('AssignedUserId', sql.VarChar, AssignedUserId)
+      .input('CallMode', sql.VarChar, CallMode)
+      .input('IsClosed', sql.Bit, IsClosed)
+      .input('ClosedStr', sql.VarChar, ClosedStr)
+      .input('Remarks', sql.VarChar, Remarks)
+      .query(insertHeadQuery);
+
+    const newEnquiryId = headResult.recordset[0].EnquiryId;
+
+    // Insert into `MstCustomerEnquiryDetail`
+    const insertDetailQuery = `
+      INSERT INTO [MstCustomerEnquiryDetail]
+      (EnquiryId, DemoDate, UserId, Remarks, NextDemoDate, IsNextDemo, CallMode, AttachmentName, ActionType, CreatedOn)
+      VALUES 
+      (@EnquiryId, @DemoDate, @UserId, @Remarks, @NextDemoDate, @IsNextDemo, @CallMode, @AttachmentName, @ActionType, GETDATE());
+    `;
+
+    for (const detail of Details) {
+      await transaction.request()
+        .input('EnquiryId', sql.Int, newEnquiryId)
+        .input('DemoDate', sql.Date, detail.DemoDate)
+        .input('UserId', sql.VarChar, detail.UserId)
+        .input('Remarks', sql.VarChar, detail.Remarks)
+        .input('NextDemoDate', sql.Date, detail.NextDemoDate)
+        .input('IsNextDemo', sql.Bit, detail.IsNextDemo)
+        .input('CallMode', sql.VarChar, detail.CallMode)
+        .input('AttachmentName', sql.VarChar, detail.AttachmentName)
+        .input('ActionType', sql.VarChar, detail.ActionType)
+        .query(insertDetailQuery);
+    }
+
+    await transaction.commit();
+
+    res.status(200).send({
+      message: 'Enquiry added successfully',
+      EnquiryId: newEnquiryId,
+    });
+  } catch (error) {
+    await transaction.rollback();
+    console.error('Error saving enquiry:', error);
+    res.status(500).send('Error saving enquiry');
+  }
+});
+
 
 module.exports = router;
 
