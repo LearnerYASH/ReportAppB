@@ -19,9 +19,7 @@ router.post('/login', async (req, res) => {
         const userResult = await pool.request()
             .input('emailid', sql.VarChar, emailid)
             .query(`
-                SELECT UserPwd, CustomerId, UserName
-                FROM MstUsers
-                WHERE EmailId = @emailid
+                EXEC ${procedureName} @cEmialId @cMobileNo
             `);
 
         if (userResult.recordset.length === 0) {
