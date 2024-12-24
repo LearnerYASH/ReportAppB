@@ -19,7 +19,7 @@ router.post('/login', async (req, res) => {
         const userResult = await pool.request()
             .input('cEmailId', sql.VarChar, emailid)
             .query(`
-                EXEC sProcGetCustomerInfo @cEmailId @cMobileNo
+                EXEC sProcGetCustomerInfo @cEmailId, @cMobileNo
             `);
 
         if (userResult.recordset.length === 0) {
