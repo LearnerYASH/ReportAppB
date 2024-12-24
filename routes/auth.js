@@ -17,9 +17,9 @@ router.post('/login', async (req, res) => {
 
         // Query to validate user
         const userResult = await pool.request()
-            .input('EmailId', sql.VarChar, emailid)
+            .input('cEmailId', sql.VarChar, emailid)
             .query(`
-                EXEC sProcGetCustomerInfo @cEmailId 
+                EXEC sProcGetCustomerInfo @cEmailId
             `);
 
         if (userResult.recordset.length === 0) {
