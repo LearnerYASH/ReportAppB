@@ -17,7 +17,7 @@ router.post('/login', async (req, res) => {
 
         // Query to validate user
         const userResult = await pool.request()
-            .input('emailid', sql.VarChar, emailid)
+            .input('EmailId', sql.VarChar, emailid)
             .query(`
                 EXEC ${procedureName} @cEmailId @cMobileNo
             `);
