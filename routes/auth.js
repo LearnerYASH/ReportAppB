@@ -18,6 +18,7 @@ router.post('/login', async (req, res) => {
         // Query to validate user
         const userResult = await pool.request()
             .input('cEmailId', sql.VarChar, emailid)
+            .input('cMobileNo', sql.VarChar, '')   
             .query(`
                 EXEC sProcGetCustomerInfo @cEmailId, @cMobileNo
             `);
