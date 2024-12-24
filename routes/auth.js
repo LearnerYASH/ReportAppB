@@ -56,41 +56,21 @@ router.post('/login', async (req, res) => {
         res.json({
             success: true,
             token,
-            customerId: user.CustomerId,
-            UserName: user.UserName
+            HoBranchId: user.HoBranchId,
+            UserName: user.UserName,
+            ServerIp: user.ServerIp,
+            SqlPort: user.SqlPort,
+            SQLUserId: user.SQLUserId,
+            SQLPwd: user.SQLPwd,
+            ClientDbName: user.ClientDbName,
+            CustomerName: user.CustomerName,
+            BusinessName: user.BusinessName,
+            ContactEmail1: user.ContactEmail1,
+            ContactPhone1: user.ContactPhone1,
+            Address: user.Address
         });
     } catch (error) {
         console.error('Error during login:', error.message);
-        res.status(500).json({ success: false, message: 'Server error', error: error.message });
-    }
-});
-
-router.get('/get-product-key', async (req, res) => {
-    const { customerId } = req.query;
-
-    if (!customerId) {
-        return res.status(400).json({ success: false, message: 'CustomerId is required' });
-    }
-
-    try {
-        const pool = await connectToDB();
-        if (!pool) throw new Error('Database connection is not established');
-
-        const productKeyResult = await pool.request()
-            .input('customerId', sql.VarChar, customerId)
-            .query(`
-                SELECT ServerIp, SqlPort, SQLUserId, SQLPwd, ClientDbName, HoBranchId
-                FROM MstProductKey
-                WHERE CustomerId = @customerId
-            `);
-
-        if (productKeyResult.recordset.length === 0) {
-            return res.status(404).json({ success: false, message: 'Product key details not found' });
-        }
-
-        res.json({ success: true, productKey: productKeyResult.recordset[0] });
-    } catch (error) {
-        console.error('Error fetching product key:', error.message);
         res.status(500).json({ success: false, message: 'Server error', error: error.message });
     }
 });
