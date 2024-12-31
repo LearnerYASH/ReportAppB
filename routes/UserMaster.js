@@ -18,7 +18,7 @@ router.get('/UserRoles', async (req, res) => {
     try {
       const pool = await connectToDB();
       const result = await pool.request().query(`
-        SELECT UserRoleId, RoleName FROM [dbo].[MstUserRoles]
+        SELECT UserRoleId, UserRoleName FROM [dbo].[MstUserRoles]
       `);
   
       res.json(result.recordset);
