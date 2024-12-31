@@ -14,5 +14,17 @@ router.get('/allusers', async (req, res) => {
         res.status(500).json({ message: 'Error fetching users', error: error.message });
     }
 });
+router.get('/UserRoles', async (req, res) => {
+    try {
+      const pool = await connectToDB();
+      const result = await pool.request().query(`
+        SELECT UserRoleId, RoleName FROM [dbo].[MstUserRoles]
+      `);
+  
+      res.json(result.recordset);
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching user roles', error: error.message });
+    }
+  });
 
 module.exports = router;
