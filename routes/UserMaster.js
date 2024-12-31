@@ -6,11 +6,8 @@ router.get('/allusers', async (req, res) => {
     try {
         const pool = await connectToDB();
         const result = await pool.request().query(`
-            SELECT 
-                [UserId], [UserName], [ShortName], [EmailId], [MobileNo], 
-                [UserRoleId], [ActiveStatus], [LastUpdate]
-            FROM [dbo].[MstUsers]
-        `);
+            SELECT * FROM [dbo].[MstUsers] WHERE [ActiveStatus] = 1
+ `);
 
         res.json(result.recordset);
     } catch (error) {
