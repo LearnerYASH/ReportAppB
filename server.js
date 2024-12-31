@@ -11,6 +11,7 @@ const EnquiryRoutes = require('./routes/EnquiryRoutes');
 const departmentRoutes = require('./routes/department');
 const categoryRoutes = require('./routes/category');
 const subcategoryRoutes = require('./routes/subcategory');
+const User = require('./routes/UserMaster');
 
 // Load environment variables
 dotenv.config();
@@ -49,6 +50,7 @@ app.use('/auth', authRoutes);
 app.use('/verify', cusDetails);
 app.use('/reports', reports);
 app.use('/CustomerEnq', EnquiryRoutes);
+app.use('/UserMaster', User);
 app.use('/department', departmentRoutes);
 app.use('/category', categoryRoutes);
 app.use('/subcategory', subcategoryRoutes);
