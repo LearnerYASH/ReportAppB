@@ -84,7 +84,7 @@ router.get('/UserRoles', async (req, res) => {
 
     // Generate a dynamic TS value
     const randomHex = Math.floor(Math.random() * 0xffff).toString(16).toUpperCase(); // Random 4-digit hex
-    const tsValue = `0x000000000000${randomHex.padStart(4, '0')}`; // Format to match required pattern
+    const tsValue = Buffer.from(`000000000000${randomHex.padStart(4, '0')}`, 'hex'); // Convert hex to Buffer (binary)
 
   
       // Insert user data into the database
@@ -109,7 +109,7 @@ router.get('/UserRoles', async (req, res) => {
         .input('ContactType', sql.Int, ContactType)
         .input('UserRoleId', sql.NVarChar, UserRoleId)
         .input('LastUpdate', sql.DateTime, lastUpdate) // Add LastUpdate
-        .input('TS', sql.VarChar, tsValue) // Dynamically generated TS
+        .input('TS', sql.VarBinary, tsValue) // Dynamically generated TS
         .query(query);
   
       res.status(200).json({ message: 'User added successfully' });
