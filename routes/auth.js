@@ -56,6 +56,7 @@ router.post('/login', async (req, res) => {
         res.json({
             success: true,
             token,
+            UserId: user.UserId,
             HoBranchId: user.HoBranchId,
             UserName: user.UserName,
             ServerIp: user.ServerIp,
