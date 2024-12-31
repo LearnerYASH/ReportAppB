@@ -107,7 +107,7 @@ router.get('/UserRoles', async (req, res) => {
         .input('MobileNo', sql.NVarChar, MobileNo)
         .input('EmailId', sql.NVarChar, EmailId)
         .input('ContactType', sql.Int, ContactType)
-        .input('UserRoleId', sql.Int, UserRoleId)
+        .input('UserRoleId', sql.NVarChar, UserRoleId)
         .input('LastUpdate', sql.DateTime, lastUpdate) // Add LastUpdate
         .input('TS', sql.VarChar, tsValue) // Dynamically generated TS
         .query(query);
