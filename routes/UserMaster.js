@@ -99,7 +99,7 @@ router.get('/UserRoles', async (req, res) => {
       `;
   
       await pool.request()
-      .input('UserId', sql.NVarChar, nextUserId)
+      .input('NextUserId', sql.NVarChar, nextUserId)
       .input('MgrUserId', sql.NVarChar, UserId)
         .input('UserName', sql.NVarChar, UserName)
         .input('ShortName', sql.NVarChar, ShortName)
