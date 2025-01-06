@@ -20,7 +20,7 @@ const app = express();
 
 // CORS Configuration
 const allowedOrigins = [
-  'http://localhost:3000', // Local frontend during development
+  'http://localhost:80', // Local frontend during development
   'https://reportapp-ruby.vercel.app', // Deployed frontend URL,
    'https://reportapp-learneryashs-projects.vercel.app',
    'https://reportapp-ruby.vercel.app/login'
