@@ -133,5 +133,44 @@ router.get('/UserRoles', async (req, res) => {
       res.status(500).json({ message: 'Error fetching products', error: error.message });
     }
   });
+  router.post('/AddNew', async (req, res) => {
+    const {
+      ProductName,
+      Price,
+      ProductDetail,
+      ProductCategory,
+      ProductType,
+      IsSubscription,
+    } = req.body;
+  
+    try {
+      const pool = await connectToDB();
+  
+      const query = `
+        INSERT INTO [dbo].[MstProduct] (
+          [ProductName], [Price], [ProductDetail], [ProductCategory],
+          [ProductType], [IsSubscription], [LastUpdate]
+        )
+        VALUES (
+          @ProductName, @Price, @ProductDetail, @ProductCategory,
+          @ProductType, @IsSubscription, GETDATE()
+        )
+      `;
+  
+      await pool.request()
+        .input('ProductName', sql.NVarChar, ProductName)
+        .input('Price', sql.Decimal(18, 2), Price)
+        .input('ProductDetail', sql.NVarChar, ProductDetail)
+        .input('ProductCategory', sql.NVarChar, ProductCategory)
+        .input('ProductType', sql.NVarChar, ProductType)
+        .input('IsSubscription', sql.Bit, IsSubscription ? 1 : 0)
+        .query(query);
+  
+      res.status(200).json({ message: 'Product added successfully' });
+    } catch (error) {
+      res.status(500).json({ message: 'Error adding product', error: error.message });
+    }
+  });
+  
 
 module.exports = router;
