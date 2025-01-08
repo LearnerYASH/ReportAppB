@@ -20,7 +20,7 @@ const app = express();
 
 // CORS Configuration
 const allowedOrigins = [
-  'http://15.207.131.195' // Local frontend during development
+  'http://localhost:3000' // Local frontend during development
   
 ];
 
