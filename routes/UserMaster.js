@@ -118,5 +118,20 @@ router.get('/UserRoles', async (req, res) => {
       res.status(500).json({ message: 'Error saving user', error: error.message });
     }
   });
+  router.get('/products', async (req, res) => {
+    try {
+      const pool = await connectToDB();
+      const result = await pool.request().query(`
+        SELECT TOP 1000 
+          ProductId, ProductName, Price, ProductDetail, LastUpdate, TS, 
+          ProductCategory, ProductType, IsSubcription, RefProductId
+        FROM [dbo].[MstProduct]
+      `);
+  
+      res.json(result.recordset);
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching products', error: error.message });
+    }
+  });
 
 module.exports = router;
