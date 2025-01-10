@@ -20,8 +20,8 @@ const app = express();
 
 // CORS Configuration
 const allowedOrigins = [
-  'http://localhost:3000' // Local frontend during development
-  
+  'http://localhost:3000', // Local frontend during development
+  'https://register-f.vercel.app'
 ];
 
 app.use(cors({
