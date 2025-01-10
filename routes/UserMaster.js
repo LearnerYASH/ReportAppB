@@ -109,7 +109,7 @@ router.get('/UserRoles', async (req, res) => {
         .input('ContactType', sql.Int, ContactType)
         .input('UserRoleId', sql.Char, UserRoleId)
         .input('LastUpdate', sql.DateTime, lastUpdate) // Add LastUpdate
-        .input('TS', sql.VarBinary, tsValue) // Dynamically generated TS
+        .input('TS', sql.timestamp, tsValue) // Dynamically generated TS
         .query(query);
   
       res.status(200).json({ message: 'User added successfully' });
