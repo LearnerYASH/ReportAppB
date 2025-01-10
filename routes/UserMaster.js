@@ -99,15 +99,15 @@ router.get('/UserRoles', async (req, res) => {
       `;
   
       await pool.request()
-      .input('NextUserId', sql.NVarChar, nextUserId)
-      .input('MgrUserId', sql.NVarChar, UserId)
-        .input('UserName', sql.NVarChar, UserName)
-        .input('ShortName', sql.NVarChar, ShortName)
-        .input('UserPwd', sql.NVarChar, encryptedPassword) // Save the encrypted password
-        .input('MobileNo', sql.NVarChar, MobileNo)
-        .input('EmailId', sql.NVarChar, EmailId)
+      .input('NextUserId', sql.Char, nextUserId)
+      .input('MgrUserId', sql.Char, UserId)
+        .input('UserName', sql.VarChar, UserName)
+        .input('ShortName', sql.VarChar, ShortName)
+        .input('UserPwd', sql.VarChar, encryptedPassword) // Save the encrypted password
+        .input('MobileNo', sql.VarChar, MobileNo)
+        .input('EmailId', sql.VarChar, EmailId)
         .input('ContactType', sql.Int, ContactType)
-        .input('UserRoleId', sql.NVarChar, UserRoleId)
+        .input('UserRoleId', sql.Char, UserRoleId)
         .input('LastUpdate', sql.DateTime, lastUpdate) // Add LastUpdate
         .input('TS', sql.VarBinary, tsValue) // Dynamically generated TS
         .query(query);
