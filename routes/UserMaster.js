@@ -135,42 +135,63 @@ router.get('/UserRoles', async (req, res) => {
   });
   router.post('/AddNew', async (req, res) => {
     const {
-      ProductName,
-      Price,
-      ProductDetail,
-      ProductCategory,
-      ProductType,
-      IsSubscription,
+        ProductName,
+        Price,
+        ProductDetail,
+        ProductCategory,
+        ProductType,
+        IsSubscription,
     } = req.body;
-  
+
     try {
-      const pool = await connectToDB();
-  
-      const query = `
-        INSERT INTO [dbo].[MstProduct] (
-          [ProductName], [Price], [ProductDetail], [ProductCategory],
-          [ProductType], [IsSubscription], [LastUpdate]
-        )
-        VALUES (
-          @ProductName, @Price, @ProductDetail, @ProductCategory,
-          @ProductType, @IsSubscription, GETDATE()
-        )
-      `;
-  
-      await pool.request()
-        .input('ProductName', sql.NVarChar, ProductName)
-        .input('Price', sql.Decimal(18, 2), Price)
-        .input('ProductDetail', sql.NVarChar, ProductDetail)
-        .input('ProductCategory', sql.NVarChar, ProductCategory)
-        .input('ProductType', sql.NVarChar, ProductType)
-        .input('IsSubscription', sql.Bit, IsSubscription ? 1 : 0)
-        .query(query);
-  
-      res.status(200).json({ message: 'Product added successfully' });
+        const pool = await connectToDB();
+
+        // Fetch the last ProductId to calculate the next one
+        const lastProductIdQuery = `
+            SELECT TOP 1 [ProductId]
+            FROM [dbo].[MstProduct]
+            WHERE [ProductId] LIKE 'iNext-%'
+            ORDER BY [ProductId] DESC
+        `;
+
+        const result = await pool.request().query(lastProductIdQuery);
+
+        let nextProductId = 'iNext-000000001'; // Default for the first product
+
+        if (result.recordset.length > 0) {
+            const lastProductId = result.recordset[0].ProductId;
+            const numericPart = parseInt(lastProductId.replace('iNext-', ''), 10);
+            const nextNumericPart = numericPart + 1;
+            nextProductId = `iNext-${nextNumericPart.toString().padStart(9, '0')}`;
+        }
+
+        const query = `
+            INSERT INTO [dbo].[MstProduct] (
+                [ProductId], [ProductName], [Price], [ProductDetail],
+                [ProductCategory], [ProductType], [IsSubscription], [LastUpdate]
+            )
+            VALUES (
+                @ProductId, @ProductName, @Price, @ProductDetail,
+                @ProductCategory, @ProductType, @IsSubscription, GETDATE()
+            )
+        `;
+
+        await pool.request()
+            .input('ProductId', sql.VarChar, nextProductId)
+            .input('ProductName', sql.VarChar, ProductName)
+            .input('Price', sql.Numeric(10, 2), Price)
+            .input('ProductDetail', sql.Text, ProductDetail)
+            .input('ProductCategory', sql.VarChar, ProductCategory)
+            .input('ProductType', sql.VarChar, ProductType)
+            .input('IsSubscription', sql.Bit, IsSubscription ? 1 : 0)
+            .query(query);
+
+        res.status(200).json({ message: 'Product added successfully', ProductId: nextProductId });
     } catch (error) {
-      res.status(500).json({ message: 'Error adding product', error: error.message });
+        res.status(500).json({ message: 'Error adding product', error: error.message });
     }
-  });
+});
+
   
 
 module.exports = router;
