@@ -122,10 +122,7 @@ router.get('/UserRoles', async (req, res) => {
     try {
       const pool = await connectToDB();
       const result = await pool.request().query(`
-        SELECT TOP 1000 
-          ProductId, ProductName, Price, ProductDetail, LastUpdate, TS, 
-          ProductCategory, ProductType, IsSubcription, RefProductId
-        FROM [dbo].[MstProduct]
+        EXEC ProcMstProductSelect 
       `);
   
       res.json(result.recordset);
