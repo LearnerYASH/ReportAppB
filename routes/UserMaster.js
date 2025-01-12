@@ -188,7 +188,7 @@ router.get('/UserRoles', async (req, res) => {
         res.status(500).json({ message: 'Error adding product', error: error.message });
     }
 });
-router.put('/editproduct', async (req, res) => {
+router.post('/editproduct', async (req, res) => {
   const {
     ProductId, 
     ProductName, 
