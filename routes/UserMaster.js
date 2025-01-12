@@ -188,6 +188,43 @@ router.get('/UserRoles', async (req, res) => {
         res.status(500).json({ message: 'Error adding product', error: error.message });
     }
 });
+router.put('/editproduct', async (req, res) => {
+  const {
+    ProductId, 
+    ProductName, 
+    Price, // Required
+    ProductDetail, // Optional (Maps to @cDesc in the procedure)
+    ProductCategory, // Required
+    ProductType, // Required
+    IsSubscription, // Optional (Maps to @lIsForLicense in the procedure)
+  } = req.body;
+
+  try {
+    // Validate required fields
+    if (!ProductId ) {
+      return res.status(400).json({ message: 'Missing required fields: ProductId, ProductName, Price, ProductCategory, and ProductType' });
+    }
+
+    const pool = await connectToDB();
+
+    // Execute the stored procedure with provided parameters
+    await pool.request()
+      .input('cProductId', sql.VarChar, ProductId ) // Map ProductId
+      .input('cProductName', sql.VarChar, ProductName || '') // Map ProductName
+      .input('cPrice', sql.VarChar, Price || '') // Map Price
+      .input('cDesc', sql.VarChar, ProductDetail || '') // Map ProductDetail (optional)
+      .input('cProductCategory', sql.VarChar, ProductCategory || '') // Map ProductCategory
+      .input('cProductType', sql.VarChar, ProductType || '') // Map ProductType
+      .input('lIsForLicense', sql.Bit, IsSubscription ? 1 : 0) // Map IsSubscription
+      .execute('ProcMstProductUpdate'); // Call the stored procedure
+
+    res.status(200).json({ message: 'Product updated successfully' });
+  } catch (error) {
+    console.error('Error updating product:', error);
+    res.status(500).json({ message: 'Error updating product', error: error.message });
+  }
+});
+
 
   
 
