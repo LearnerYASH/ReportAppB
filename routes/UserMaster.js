@@ -208,7 +208,7 @@ router.post('/editproduct', async (req, res) => {
 
   try {
     // Validate required fields
-    if (!ProductId || !ProductName || !Price || !ProductCategory || !ProductType) {
+    if (!ProductId) {
       return res.status(400).json({
         message: 'Missing required fields: ProductId, ProductName, Price, ProductCategory, and ProductType',
       });
