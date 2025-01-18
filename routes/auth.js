@@ -104,7 +104,7 @@ router.post('/loginr', async (req, res) => {
         const user = userResult.recordset[0];
 
         // Generate JWT token
-        const token = jwt.sign({ customerId: user.CustomerId }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ customerId: user.CustomerId }, JWT_SECRET, { expiresIn: '1h' });
 
         // Respond with user details and token
         res.json({
