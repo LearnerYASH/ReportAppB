@@ -217,11 +217,11 @@ router.post('/editproduct', async (req, res) => {
     // Execute the stored procedure with provided parameters
     await pool.request()
       .input('cProductId', sql.VarChar, ProductId ) // Map ProductId
-      .input('cProductName', sql.VarChar, ProductName || '') // Map ProductName
-      .input('cPrice', sql.VarChar, Price || '') // Map Price
-      .input('cDesc', sql.VarChar, ProductDetail || '') // Map ProductDetail (optional)
-      .input('cProductCategory', sql.VarChar, ProductCategory || '') // Map ProductCategory
-      .input('cProductType', sql.VarChar, ProductType || '') // Map ProductType
+      .input('cProductName', sql.VarChar, ProductName) // Map ProductName
+      .input('cPrice', sql.VarChar, Price) // Map Price
+      .input('cDesc', sql.VarChar, ProductDetail) // Map ProductDetail (optional)
+      .input('cProductCategory', sql.VarChar, ProductCategory) // Map ProductCategory
+      .input('cProductType', sql.VarChar, ProductType) // Map ProductType
       .input('lIsForLicense', sql.Bit, IsSubscription ? 1 : 0) // Map IsSubscription
       .execute('ProcMstProductUpdate'); // Call the stored procedure
 
