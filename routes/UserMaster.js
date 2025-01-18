@@ -197,8 +197,8 @@ router.get('/UserRoles', async (req, res) => {
 });
 router.post('/editproduct', async (req, res) => {
   const {
-    ProductId, 
-    ProductName, 
+    ProductId,
+    ProductName,
     Price, // Required
     ProductDetail, // Optional (Maps to @cDesc in the procedure)
     ProductCategory, // Required
@@ -208,20 +208,27 @@ router.post('/editproduct', async (req, res) => {
 
   try {
     // Validate required fields
-    if (!ProductId ) {
-      return res.status(400).json({ message: 'Missing required fields: ProductId, ProductName, Price, ProductCategory, and ProductType' });
+    if (!ProductId || !ProductName || !Price || !ProductCategory || !ProductType) {
+      return res.status(400).json({
+        message: 'Missing required fields: ProductId, ProductName, Price, ProductCategory, and ProductType',
+      });
+    }
+
+    // Ensure Price is a valid string representation of a number
+    if (isNaN(parseFloat(Price))) {
+      return res.status(400).json({ message: 'Invalid value for Price. It must be a numeric string.' });
     }
 
     const pool = await connectToDB();
 
     // Execute the stored procedure with provided parameters
     await pool.request()
-      .input('cProductId', sql.VarChar, ProductId ) // Map ProductId
-      .input('cProductName', sql.VarChar, ProductName) // Map ProductName
-      .input('cPrice', sql.VarChar, Price) // Map Price
-      .input('cDesc', sql.VarChar, ProductDetail) // Map ProductDetail (optional)
-      .input('cProductCategory', sql.VarChar, ProductCategory) // Map ProductCategory
-      .input('cProductType', sql.VarChar, ProductType) // Map ProductType
+      .input('cProductId', sql.VarChar(20), ProductId) // Map ProductId
+      .input('cProductName', sql.VarChar(100), ProductName) // Map ProductName
+      .input('cPrice', sql.VarChar(20), Price) // Map Price as a string
+      .input('cDesc', sql.VarChar(sql.MAX), ProductDetail) // Map ProductDetail (optional)
+      .input('cProductCategory', sql.VarChar(100), ProductCategory) // Map ProductCategory
+      .input('cProductType', sql.VarChar(50), ProductType) // Map ProductType
       .input('lIsForLicense', sql.Bit, IsSubscription ? 1 : 0) // Map IsSubscription
       .execute('ProcMstProductUpdate'); // Call the stored procedure
 
