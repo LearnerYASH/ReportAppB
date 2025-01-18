@@ -234,6 +234,7 @@ router.post('/editproduct', async (req, res) => {
       .input('cProductCategory', sql.VarChar(100), ProductCategory) // Map ProductCategory
       .input('cProductType', sql.VarChar(50), ProductType) // Map ProductType
       .input('lIsForLicense', sql.Bit, IsSubscription ? 1 : 0) // Map IsSubscription
+      .input('cRefProductId', sql.VarChar, '') // Map IsSubscription
       .execute('ProcMstProductUpdate'); // Call the stored procedure
 
     res.status(200).json({ message: 'Product updated successfully' });
