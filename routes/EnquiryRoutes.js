@@ -6,27 +6,18 @@ const { connectToDB, sql } = require('../db');
 router.get('/Customer', async (req, res) => {
   try {
     const pool = await connectToDB();
-    const query = `
-      SELECT TOP (1000)
-        CustomerId, CustomerName, BusinessName, ShortName, Address, LocalityId,
-        ActiveStatus, ContactEmail1, ContactEmail2, ContactPhone1, ContactPhone2,
-        ContactWebsite, IsOnHold, Remarks, AssignedUserId, AMCUpto, IsPublish,
-        Trade, StoreType, HoCount, WhCount, PosCount, SisCount, AutomationArea,
-        InstallationType, AdvanceAmount, TotalAmount, PayMode, ChqNo, ChqDate,
-        BankName, ImplementationStartDate, ImplementationEndDate, Modules,
-        TaxGSTINNo, GSTClassification, ProjectManagerId, PartyMode, IsAmcExtended,
-        AmcExtendedDays, AmcExtendedUserId, AmcExtentedOn, LastUpdate, CreatedOn, TS
-      FROM [iNextInhouseErp].[dbo].[MstCustomer]
-    `;
-    const result = await pool.request().query(query);
+    if (!pool) throw new Error('Database connection failed');
 
-    // Remove the first row
-    const filteredResult = result.recordset.slice(1);
+    // Execute the stored procedure ProcMstCustomerSelect
+    const result = await pool.request().execute('ProcMstCustomerSelect');
+
+    // Remove the first row (if required)
+    const filteredResult = result.recordset;
 
     res.json(filteredResult);
   } catch (error) {
-    console.error('Error fetching customer data:', error);
-    res.status(500).send('Error fetching customer data');
+    console.error('Error fetching customer data:', error.message);
+    res.status(500).json({ message: 'Error fetching customer data', error: error.message });
   }
 });
 router.post('/AddCustomer', async (req, res) => {
