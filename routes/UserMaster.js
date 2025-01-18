@@ -41,8 +41,10 @@ const getNextUserId = async (pool) => {
             .input('cCustomerId', sql.VarChar, '') // Pass empty string as @cCustomerId
             .execute('ProcMstUsersSelect'); // Execute the stored procedure
 
-        // Send the result
-        res.json(result.recordset);
+        // Filter records in the backend
+        const filteredUsers = result.recordset.filter(user => user.ContactType === 1);
+
+        res.json(filteredUsers);
     } catch (error) {
         console.error('Error fetching users:', error.message);
         res.status(500).json({ message: 'Error fetching users', error: error.message });
