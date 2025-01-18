@@ -224,6 +224,43 @@ router.post('/editproduct', async (req, res) => {
     res.status(500).json({ message: 'Error updating product', error: error.message });
   }
 });
+router.post('/edituser', async (req, res) => {
+  const { UserId, UserName, EmailId, MobileNo, UserRoleId, ActiveStatus } = req.body;
+
+  try {
+    // Validate required fields
+    if (!UserId || !UserName || !EmailId || !UserRoleId) {
+      return res.status(400).json({ message: 'Missing required fields: UserId, UserName, EmailId, and UserRoleId' });
+    }
+
+    const pool = await connectToDB();
+
+    // Execute the stored procedure or write a query to update user information
+    await pool.request()
+      .input('UserId', sql.Char, UserId) // Map UserId
+      .input('UserName', sql.VarChar, UserName) // Map UserName
+      .input('EmailId', sql.VarChar, EmailId) // Map EmailId
+      .input('MobileNo', sql.VarChar, MobileNo || null) // Map MobileNo (optional)
+      .input('UserRoleId', sql.Char, UserRoleId) // Map UserRoleId
+      .input('ActiveStatus', sql.Bit, ActiveStatus ? 1 : 0) // Map ActiveStatus
+      .query(`
+        UPDATE [dbo].[MstUsers]
+        SET 
+          [UserName] = @UserName,
+          [EmailId] = @EmailId,
+          [MobileNo] = @MobileNo,
+          [UserRoleId] = @UserRoleId,
+          [ActiveStatus] = @ActiveStatus,
+          [LastUpdate] = GETDATE()
+        WHERE [UserId] = @UserId
+      `);
+
+    res.status(200).json({ message: 'User updated successfully' });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ message: 'Error updating user', error: error.message });
+  }
+});
 
 
   
