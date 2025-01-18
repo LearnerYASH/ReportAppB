@@ -208,16 +208,20 @@ router.post('/editproduct', async (req, res) => {
 
   try {
     // Validate required fields
-    if (!ProductId) {
+    if (!ProductId || !ProductName || !Price || !ProductCategory || !ProductType) {
       return res.status(400).json({
         message: 'Missing required fields: ProductId, ProductName, Price, ProductCategory, and ProductType',
       });
     }
 
-    // Ensure Price is a valid string representation of a number
-    if (isNaN(parseFloat(Price))) {
-      return res.status(400).json({ message: 'Invalid value for Price. It must be a numeric string.' });
+    // Ensure Price is a valid numeric string
+    const parsedPrice = parseFloat(Price);
+    if (isNaN(parsedPrice)) {
+      return res.status(400).json({ message: 'Invalid value for Price. It must be a valid number.' });
     }
+
+    // Format Price as a string (with 2 decimal places, if needed)
+    const formattedPrice = parsedPrice.toFixed(2);
 
     const pool = await connectToDB();
 
@@ -225,7 +229,7 @@ router.post('/editproduct', async (req, res) => {
     await pool.request()
       .input('cProductId', sql.VarChar(20), ProductId) // Map ProductId
       .input('cProductName', sql.VarChar(100), ProductName) // Map ProductName
-      .input('cPrice', sql.VarChar(20), Price) // Map Price as a string
+      .input('cPrice', sql.VarChar(20), formattedPrice) // Map formatted Price as a string
       .input('cDesc', sql.VarChar(sql.MAX), ProductDetail) // Map ProductDetail (optional)
       .input('cProductCategory', sql.VarChar(100), ProductCategory) // Map ProductCategory
       .input('cProductType', sql.VarChar(50), ProductType) // Map ProductType
@@ -234,7 +238,7 @@ router.post('/editproduct', async (req, res) => {
 
     res.status(200).json({ message: 'Product updated successfully' });
   } catch (error) {
-    console.error('Error updating product:', error);
+    console.error('Error updating product:', error.message);
     res.status(500).json({ message: 'Error updating product', error: error.message });
   }
 });
