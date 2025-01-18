@@ -31,15 +31,20 @@ const getNextUserId = async (pool) => {
     return nextUserId;
   };
 
-router.get('/allusers', async (req, res) => {
+  router.get('/allusers', async (req, res) => {
     try {
         const pool = await connectToDB();
-        const result = await pool.request().query(`
-            SELECT * FROM [dbo].[MstUsers] WHERE [ActiveStatus] = 1
- `);
+        if (!pool) throw new Error('Database connection failed');
 
+        // Call the stored procedure with @cCustomerId as an empty string
+        const result = await pool.request()
+            .input('cCustomerId', sql.VarChar, '') // Pass empty string as @cCustomerId
+            .execute('ProcMstUsersSelect'); // Execute the stored procedure
+
+        // Send the result
         res.json(result.recordset);
     } catch (error) {
+        console.error('Error fetching users:', error.message);
         res.status(500).json({ message: 'Error fetching users', error: error.message });
     }
 });
