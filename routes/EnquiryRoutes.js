@@ -20,6 +20,72 @@ router.get('/Customer', async (req, res) => {
     res.status(500).json({ message: 'Error fetching customer data', error: error.message });
   }
 });
+router.get('/cities', async (req, res) => {
+  try {
+    const pool = await connectToDB();
+    if (!pool) throw new Error('Database connection failed');
+
+    const result = await pool.request().query(`
+      SELECT [CityId], [CityName], [ActiveStatus]
+      FROM [iNextInhouseErp].[dbo].[MstCity]
+      WHERE [ActiveStatus] = 1
+    `);
+
+    res.json(result.recordset);
+  } catch (error) {
+    console.error('Error fetching cities:', error.message);
+    res.status(500).json({ message: 'Error fetching cities', error: error.message });
+  }
+});
+
+// Fetch all localities
+router.get('/localities', async (req, res) => {
+  try {
+    const pool = await connectToDB();
+    if (!pool) throw new Error('Database connection failed');
+
+    const result = await pool.request().query(`
+      SELECT [LocalityId], [Locality], [CityId], [PinCode], [ActiveStatus]
+      FROM [iNextInhouseErp].[dbo].[MstLocality]
+      WHERE [ActiveStatus] = 1
+    `);
+
+    res.json(result.recordset);
+  } catch (error) {
+    console.error('Error fetching localities:', error.message);
+    res.status(500).json({ message: 'Error fetching localities', error: error.message });
+  }
+});
+
+// Add a new locality
+router.post('/localities', async (req, res) => {
+  const { Locality, CityId, PinCode } = req.body;
+
+  if (!Locality || !CityId ) {
+    return res.status(400).json({ message: 'All fields are required' });
+  }
+
+  try {
+    const pool = await connectToDB();
+    if (!pool) throw new Error('Database connection failed');
+
+    await pool.request()
+      .input('Locality', sql.VarChar, Locality)
+      .input('CityId', sql.Int, CityId)
+      .input('PinCode', sql.VarChar, PinCode)
+      .input('ActiveStatus', sql.Bit, 1) // Default to active
+      .query(`
+        INSERT INTO [iNextInhouseErp].[dbo].[MstLocality]
+        ([Locality], [CityId], [PinCode], [ActiveStatus])
+        VALUES (@Locality, @CityId, @PinCode, @ActiveStatus)
+      `);
+
+    res.status(201).json({ message: 'Locality added successfully' });
+  } catch (error) {
+    console.error('Error adding locality:', error.message);
+    res.status(500).json({ message: 'Error adding locality', error: error.message });
+  }
+});
 router.post('/AddCustomer', async (req, res) => {
   try {
     const pool = await connectToDB();
