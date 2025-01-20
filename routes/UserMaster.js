@@ -137,7 +137,7 @@ router.get('/UserRoles', async (req, res) => {
       res.status(500).json({ message: 'Error fetching products', error: error.message });
     }
   });
-  router.post('/AddNew', async (req, res) => {
+  router.post('/AddNewProduct', async (req, res) => {
     const {
         ProductName,
         Price,
