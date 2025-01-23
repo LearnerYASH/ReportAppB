@@ -37,6 +37,23 @@ router.get('/cities', async (req, res) => {
     res.status(500).json({ message: 'Error fetching cities', error: error.message });
   }
 });
+router.get('/states', async (req, res) => {
+  try {
+    const pool = await connectToDB();
+    if (!pool) throw new Error('Database connection failed');
+
+    const result = await pool.request().query(`
+      SELECT [StateId], [StateName], [ActiveStatus]
+      FROM [iNextInhouseErp].[dbo].[MstState]
+      WHERE [ActiveStatus] = 1
+    `);
+
+    res.json(result.recordset);
+  } catch (error) {
+    console.error('Error fetching states:', error.message);
+    res.status(500).json({ message: 'Error fetching states', error: error.message });
+  }
+});
 
 // Fetch all localities
 router.get('/localities', async (req, res) => {

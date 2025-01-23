@@ -183,7 +183,7 @@ router.get('/UserRoles', async (req, res) => {
         await pool.request()
             .input('ProductId', sql.VarChar, nextProductId)
             .input('ProductName', sql.VarChar, ProductName)
-            .input('Price', sql.Numeric(10, 2), Price)
+            .input('Price', sql.VarChar(20), Price)
             .input('ProductDetail', sql.Text, ProductDetail)
             .input('ProductCategory', sql.VarChar, ProductCategory)
             .input('ProductType', sql.VarChar, ProductType)
