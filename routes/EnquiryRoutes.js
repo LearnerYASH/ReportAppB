@@ -168,15 +168,31 @@ router.post('/AddCustomer', async (req, res) => {
   try {
     const pool = await connectToDB();
     const {
-      CustomerName,
-      BusinessName,
-      Address,
-      ContactEmail,
-      ContactPhone,
-      ContactWebsite,
+      salutation,
+      firstName,
+      lastName,
+      businessName,
+      address,
+      email,
+      phone,
+      website,
+      gstTreatment,
+      taxGSTINNo,
+      locality,
     } = req.body;
 
-    // Step 1: Get the last CustomerId
+    // Step 1: Merge firstName and lastName for CustomerName
+    const CustomerName = `${firstName} ${lastName}`.trim();
+
+    // Step 2: Map gstTreatment to GSTClassification
+    const gstMapping = {
+      'Registered Taxpayer': 1,
+      'Normal Taxpayer': 2,
+      'Composition Taxpayer': 3,
+    };
+    const GSTClassification = gstMapping[gstTreatment] || null; // Default to null if not found
+
+    // Step 3: Get the last CustomerId
     const lastIdQuery = `
       SELECT MAX(CustomerId) AS LastCustomerId 
       FROM [MstCustomer];
@@ -185,27 +201,38 @@ router.post('/AddCustomer', async (req, res) => {
 
     const lastId = lastIdResult.recordset[0].LastCustomerId || 'iNext-000000000';
 
-    // Step 2: Generate the next CustomerId
+    // Step 4: Generate the next CustomerId
     const lastNumber = parseInt(lastId.split('-')[1], 10); // Extract numeric part
     const nextNumber = lastNumber + 1; // Increment the number
     const nextCustomerId = `iNext-${nextNumber.toString().padStart(9, '0')}`; // Format with leading zeros
 
-    // Step 3: Insert new customer with generated CustomerId
+    // Step 5: Insert the new customer with the provided data
     const insertQuery = `
       INSERT INTO [MstCustomer] 
-      (CustomerId, CustomerName, BusinessName, Address, ContactEmail1, ContactPhone1, ContactWebsite, CreatedOn) 
+      (
+        CustomerId, CustomerName, BusinessName, Address, ContactEmail1, 
+        ContactPhone1, ContactWebsite, GSTClassification, TaxGSTINNo, 
+        LocalityId, CreatedOn
+      ) 
       VALUES 
-      (@CustomerId, @CustomerName, @BusinessName, @Address, @ContactEmail, @ContactPhone, @ContactWebsite, GETDATE());
+      (
+        @CustomerId, @CustomerName, @BusinessName, @Address, @ContactEmail1, 
+        @ContactPhone1, @ContactWebsite, @GSTClassification, @TaxGSTINNo, 
+        @LocalityId, GETDATE()
+      );
     `;
 
     await pool.request()
-      .input('CustomerId', sql.VarChar, nextCustomerId)
+      .input('CustomerId', sql.Char, nextCustomerId)
       .input('CustomerName', sql.VarChar, CustomerName)
-      .input('BusinessName', sql.VarChar, BusinessName)
-      .input('Address', sql.VarChar, Address)
-      .input('ContactEmail', sql.VarChar, ContactEmail)
-      .input('ContactPhone', sql.VarChar, ContactPhone)
-      .input('ContactWebsite', sql.VarChar, ContactWebsite)
+      .input('BusinessName', sql.VarChar, businessName)
+      .input('Address', sql.VarChar, address)
+      .input('ContactEmail1', sql.VarChar, email)
+      .input('ContactPhone1', sql.VarChar, phone)
+      .input('ContactWebsite', sql.VarChar, website)
+      .input('GSTClassification', sql.Int, GSTClassification)
+      .input('TaxGSTINNo', sql.VarChar, taxGSTINNo)
+      .input('LocalityId', sql.Char, locality)
       .query(insertQuery);
 
     res.status(200).send(`Customer added successfully with ID: ${nextCustomerId}`);
