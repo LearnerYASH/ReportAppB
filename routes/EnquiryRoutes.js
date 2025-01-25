@@ -324,7 +324,7 @@ router.post('/UpdateCustomer', async (req, res) => {
       Locality,
     } = req.body;
 
-    if (!id) {
+    if (!CustomerId) {
       return res.status(400).json({ message: 'Customer ID is required for update' });
     }
 
