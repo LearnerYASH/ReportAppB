@@ -322,6 +322,7 @@ router.post('/UpdateCustomer', async (req, res) => {
       gstTreatment,
       TaxGSTINNo,
       LocalityId,
+      ProjectManagerId = '0000000000',
     } = req.body;
 
     if (!CustomerId) {
@@ -340,6 +341,7 @@ router.post('/UpdateCustomer', async (req, res) => {
       .input('cGSTClassification', gstTreatment)
       .input('cTaxGSTINNo', TaxGSTINNo)
       .input('cLocalityId', LocalityId)
+      .input('cProjectManagerId', ProjectManagerId)
       .execute('ProcMstCustomerUpdate');
 
     res.json({ message: 'Customer updated successfully' });
