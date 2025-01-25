@@ -90,19 +90,18 @@ router.get('/UserRoles', async (req, res) => {
     const lastUpdate = new Date().toISOString().replace('T', ' ').substring(0, 23); // Current timestamp
 
     // Generate a dynamic TS value
-    const randomHex = Math.floor(Math.random() * 0xffff).toString(16).toUpperCase(); // Random 4-digit hex
-    const tsValue = Buffer.from(`000000000000${randomHex.padStart(4, '0')}`, 'hex'); // Convert hex to Buffer (binary)
+    
 
   
       // Insert user data into the database
       const query = `
       INSERT INTO [dbo].[MstUsers] (
         [UserId], [MgrUserId], [UserName], [ShortName], [UserPwd], [MobileNo],
-        [EmailId], [ContactType], [UserRoleId], [ActiveStatus], [LastUpdate], [IsNewUser]
+        [EmailId], [ContactType], [UserRoleId], [ActiveStatus], [LastUpdate], [IsNewUser], [CustomerId]
       )
       VALUES (
         @UserId, @MgrUserId, @UserName, @ShortName, @UserPwd, @MobileNo,
-        @EmailId, @ContactType, @UserRoleId, 1, @LastUpdate, 1
+        @EmailId, @ContactType, @UserRoleId, 1, @LastUpdate, 1, @CustomerId
       )
     `;
   
@@ -115,6 +114,7 @@ router.get('/UserRoles', async (req, res) => {
         .input('MobileNo', sql.VarChar, MobileNo)
         .input('EmailId', sql.VarChar, EmailId)
         .input('ContactType', sql.Int, ContactType)
+        .input('CustomerId', sql.Char, UserId)
         .input('UserRoleId', sql.Char, UserRoleId)
         .input('LastUpdate', sql.DateTime, new Date()) // Add LastUpdate
         
