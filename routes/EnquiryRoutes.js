@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { connectToDB, sql } = require('../db');
 
+
 // Get all customers
 router.get('/Customer', async (req, res) => {
   try {
@@ -76,33 +77,85 @@ router.get('/localities', async (req, res) => {
 
 // Add a new locality
 router.post('/localities', async (req, res) => {
-  const { Locality, CityId, PinCode } = req.body;
+  const { Locality, City, StateId, PinCode } = req.body;
 
-  if (!Locality || !CityId ) {
-    return res.status(400).json({ message: 'All fields are required' });
+  // Validate input
+  if (!Locality || !City || !StateId || !PinCode) {
+    return res.status(400).json({ message: 'All fields are required.' });
   }
 
   try {
     const pool = await connectToDB();
     if (!pool) throw new Error('Database connection failed');
 
-    await pool.request()
-      .input('Locality', sql.VarChar, Locality)
-      .input('CityId', sql.Int, CityId)
-      .input('PinCode', sql.VarChar, PinCode)
-      .input('ActiveStatus', sql.Bit, 1) // Default to active
-      .query(`
-        INSERT INTO [iNextInhouseErp].[dbo].[MstLocality]
-        ([Locality], [CityId], [PinCode], [ActiveStatus])
-        VALUES (@Locality, @CityId, @PinCode, @ActiveStatus)
-      `);
+    // Check if the city already exists
+    const cityResult = await pool.request()
+      .input('CityName', City)
+      .input('StateId', StateId)
+      .query(
+        `SELECT [CityId] FROM [iNextInhouseErp].[dbo].[MstCity]
+         WHERE [CityName] = @CityName AND [StateId] = @StateId`
+      );
 
-    res.status(201).json({ message: 'Locality added successfully' });
+    let cityId = cityResult.recordset[0]?.CityId;
+
+    // If city doesn't exist, create a new CityId and insert it
+    if (!cityId) {
+      const generateUniqueId = async (table, idColumn, prefix, pool) => {
+        const result = await pool.request().query(
+          `SELECT TOP 1 ${idColumn} FROM [iNextInhouseErp].[dbo].[${table}]
+           ORDER BY ${idColumn} DESC`
+        );
+        const lastId = result.recordset[0]?.[idColumn] || `${prefix}000000000`;
+        const numericPart = parseInt(lastId.replace(prefix, ''), 10) + 1;
+        return `${prefix}${numericPart.toString().padStart(9, '0')}`;
+      };
+
+      cityId = await generateUniqueId('MstCity', 'CityId', 'C', pool);
+      await pool.request()
+        .input('CityId', cityId)
+        .input('CityName', City)
+        .input('StateId', StateId)
+        .input('ActiveStatus', 1)
+        .query(
+          `INSERT INTO [iNextInhouseErp].[dbo].[MstCity] ([CityId], [CityName], [StateId], [ActiveStatus], [LastUpdate])
+           VALUES (@CityId, @CityName, @StateId, @ActiveStatus, GETDATE())`
+        );
+    }
+
+    // Check if locality already exists
+    const localityResult = await pool.request()
+      .input('Locality', Locality)
+      .input('CityId', cityId)
+      .query(
+        `SELECT [LocalityId] FROM [iNextInhouseErp].[dbo].[MstLocality]
+         WHERE [Locality] = @Locality AND [CityId] = @CityId`
+      );
+
+    if (localityResult.recordset.length > 0) {
+      return res.status(400).json({ message: 'Locality already exists for the given city.' });
+    }
+
+    // Generate a unique LocalityId and insert the locality
+    const localityId = await generateUniqueId('MstLocality', 'LocalityId', 'L', pool);
+    await pool.request()
+      .input('LocalityId', localityId)
+      .input('Locality', Locality)
+      .input('CityId', cityId)
+      .input('PinCode', PinCode)
+      .input('ActiveStatus', 1)
+      .query(
+        `INSERT INTO [iNextInhouseErp].[dbo].[MstLocality] ([LocalityId], [Locality], [CityId], [PinCode], [ActiveStatus], [LastUpdate])
+         VALUES (@LocalityId, @Locality, @CityId, @PinCode, @ActiveStatus, GETDATE())`
+      );
+
+    res.status(201).json({ message: 'Locality saved successfully.', localityId, cityId });
   } catch (error) {
-    console.error('Error adding locality:', error.message);
-    res.status(500).json({ message: 'Error adding locality', error: error.message });
+    console.error('Error saving locality:', error.message);
+    res.status(500).json({ message: 'Error saving locality', error: error.message });
   }
 });
+
 router.post('/AddCustomer', async (req, res) => {
   try {
     const pool = await connectToDB();
