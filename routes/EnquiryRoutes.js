@@ -330,16 +330,16 @@ router.post('/UpdateCustomer', async (req, res) => {
 
     // Execute the stored procedure ProcMstCustomerUpdate
     await pool.request()
-      .input('@cCustomerID', CustomerId)
-      .input('@cCustomerName', CustomerName)
-      .input('@cBusinessName', BusinessName)
-      .input('@cAddress', Address)
-      .input('@cContactEmail1', ContactEmail1)
-      .input('@cContactPhone1', ContactPhone1)
-      .input('@cContactWebsite', ContactWebsite)
-      .input('@cGSTClassification', GSTClassification)
-      .input('@cTaxGSTINNo', TaxGSTINNo)
-      .input('@cLocality', Locality)
+      .input('cCustomerID', CustomerId)
+      .input('cCustomerName', CustomerName)
+      .input('cBusinessName', BusinessName)
+      .input('cAddress', Address)
+      .input('cContactEmail1', ContactEmail1)
+      .input('cContactPhone1', ContactPhone1)
+      .input('cContactWebsite', ContactWebsite)
+      .input('cGSTClassification', GSTClassification)
+      .input('cTaxGSTINNo', TaxGSTINNo)
+      .input('cLocality', Locality)
       .execute('ProcMstCustomerUpdate');
 
     res.json({ message: 'Customer updated successfully' });
