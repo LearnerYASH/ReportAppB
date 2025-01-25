@@ -96,14 +96,15 @@ router.get('/UserRoles', async (req, res) => {
   
       // Insert user data into the database
       const query = `
-        INSERT INTO [dbo].[MstUsers] (
-          [UserId], [MgrUserId], [UserName], [ShortName], [UserPwd], [MobileNo], 
+      INSERT INTO [dbo].[MstUsers] (
+        [UserId], [MgrUserId], [UserName], [ShortName], [UserPwd], [MobileNo],
         [EmailId], [ContactType], [UserRoleId], [ActiveStatus], [LastUpdate], [IsNewUser], [TS]
-        )
-        VALUES (
-         @NextUserId, @MgrUserId, @UserName, @ShortName, @UserPwd, @MobileNo, 
+      )
+      VALUES (
+        @NextUserId, @MgrUserId, @UserName, @ShortName, @UserPwd, @MobileNo,
         @EmailId, @ContactType, @UserRoleId, 1, @LastUpdate, 1, @TS
-      `;
+      )
+    `;
   
       await pool.request()
       .input('NextUserId', sql.Char, nextUserId)
