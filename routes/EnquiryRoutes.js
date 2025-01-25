@@ -342,6 +342,7 @@ router.post('/UpdateCustomer', async (req, res) => {
       .input('cTaxGSTINNo', TaxGSTINNo)
       .input('cLocalityId', LocalityId)
       .input('cProjectManagerId', ProjectManagerId)
+      .input('lIsActive', 1)
       .execute('ProcMstCustomerUpdate');
 
     res.json({ message: 'Customer updated successfully' });
