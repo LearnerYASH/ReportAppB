@@ -98,11 +98,11 @@ router.get('/UserRoles', async (req, res) => {
       const query = `
       INSERT INTO [dbo].[MstUsers] (
         [UserId], [MgrUserId], [UserName], [ShortName], [UserPwd], [MobileNo],
-        [EmailId], [ContactType], [UserRoleId], [ActiveStatus], [LastUpdate], [IsNewUser], [TS]
+        [EmailId], [ContactType], [UserRoleId], [ActiveStatus], [LastUpdate], [IsNewUser]
       )
       VALUES (
         @UserId, @MgrUserId, @UserName, @ShortName, @UserPwd, @MobileNo,
-        @EmailId, @ContactType, @UserRoleId, 1, @LastUpdate, 1, @TS
+        @EmailId, @ContactType, @UserRoleId, 1, @LastUpdate, 1
       )
     `;
   
@@ -117,7 +117,7 @@ router.get('/UserRoles', async (req, res) => {
         .input('ContactType', sql.Int, ContactType)
         .input('UserRoleId', sql.Char, UserRoleId)
         .input('LastUpdate', sql.DateTime, new Date()) // Add LastUpdate
-        .input('TS', sql.timestamp, tsValue) // Dynamically generated TS
+        
         .query(query);
   
       res.status(200).json({ message: 'User added successfully' });
