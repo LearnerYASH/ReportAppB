@@ -1,7 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const { connectToDB, sql } = require('../db');
-
+const generateUniqueId = async (table, idColumn, prefix, pool) => {
+  const result = await pool.request().query(
+    `SELECT TOP 1 ${idColumn} FROM [iNextInhouseErp].[dbo].[${table}]
+     ORDER BY ${idColumn} DESC`
+  );
+  const lastId = result.recordset[0]?.[idColumn] || `${prefix}000000000`;
+  const numericPart = parseInt(lastId.replace(prefix, ''), 10) + 1;
+  return `${prefix}${numericPart.toString().padStart(9, '0')}`;
+};
 
 // Get all customers
 router.get('/Customer', async (req, res) => {
