@@ -319,7 +319,7 @@ router.post('/UpdateCustomer', async (req, res) => {
       Email,
       Phone,
       Website,
-      GSTClassification,
+      gstTreatment,
       TaxGSTINNo,
       LocalityId,
     } = req.body;
@@ -337,7 +337,7 @@ router.post('/UpdateCustomer', async (req, res) => {
       .input('cContactEmail1', Email)
       .input('cContactPhone1', Phone)
       .input('cContactWebsite', Website)
-      .input('cGSTClassification', GSTClassification)
+      .input('cGSTClassification', gstTreatment)
       .input('cTaxGSTINNo', TaxGSTINNo)
       .input('cLocalityId', LocalityId)
       .execute('ProcMstCustomerUpdate');
