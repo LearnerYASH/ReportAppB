@@ -29,23 +29,7 @@ router.get('/Customer', async (req, res) => {
     res.status(500).json({ message: 'Error fetching customer data', error: error.message });
   }
 });
-router.get('/cities', async (req, res) => {
-  try {
-    const pool = await connectToDB();
-    if (!pool) throw new Error('Database connection failed');
 
-    const result = await pool.request().query(`
-      SELECT [CityId], [CityName], [ActiveStatus]
-      FROM [iNextInhouseErp].[dbo].[MstCity]
-      WHERE [ActiveStatus] = 1
-    `);
-
-    res.json(result.recordset);
-  } catch (error) {
-    console.error('Error fetching cities:', error.message);
-    res.status(500).json({ message: 'Error fetching cities', error: error.message });
-  }
-});
 router.get('/states', async (req, res) => {
   try {
     const pool = await connectToDB();
@@ -241,40 +225,7 @@ router.post('/AddCustomer', async (req, res) => {
     res.status(500).send('Error adding customer');
   }
 });
-router.post('/AddProduct', async (req, res) => {
-  try {
-    const pool = await connectToDB();
-    const {
-      CustomerId,
-      ProductName,
-      ProductDetail,
-      ProductCategory,
-      ProductType,
-      Price,
-    } = req.body;
 
-    const insertQuery = `
-      INSERT INTO [MstProduct] 
-      (ProductId, ProductName, Price, ProductDetail, ProductCategory, ProductType, CreatedOn)
-      VALUES 
-      (@ProductId, @ProductName, @Price, @ProductDetail, @ProductCategory, @ProductType, GETDATE());
-    `;
-
-    await pool.request()
-      .input('ProductId', sql.VarChar, CustomerId)
-      .input('ProductName', sql.VarChar, ProductName)
-      .input('Price', sql.Decimal, Price)
-      .input('ProductDetail', sql.VarChar, ProductDetail)
-      .input('ProductCategory', sql.VarChar, ProductCategory)
-      .input('ProductType', sql.VarChar, ProductType)
-      .query(insertQuery);
-
-    res.status(200).send(`Product added successfully with ID: ${CustomerId}`);
-  } catch (error) {
-    console.error('Error adding product:', error);
-    res.status(500).send('Error adding product');
-  }
-});
 
 router.post('/AddEnquiry', async (req, res) => {
   const pool = await connectToDB();
@@ -354,7 +305,84 @@ router.post('/AddEnquiry', async (req, res) => {
     res.status(500).send('Error saving enquiry');
   }
 });
+router.post('/UpdateCustomer', async (req, res) => {
+  try {
+    const pool = await connectToDB();
+    if (!pool) throw new Error('Database connection failed');
 
+    // Extract customer details from the request body
+    const {
+      CustomerId,
+      CustomerName,
+      BusinessName,
+      Address,
+      ContactEmail1,
+      ContactPhone1,
+      ContactWebsite,
+      GSTClassification,
+      TaxGSTINNo,
+      Locality,
+    } = req.body;
+
+    if (!id) {
+      return res.status(400).json({ message: 'Customer ID is required for update' });
+    }
+
+    // Execute the stored procedure ProcMstCustomerUpdate
+    await pool.request()
+      .input('CustomerID', CustomerId)
+      .input('CustomerName', CustomerName)
+      .input('BusinessName', BusinessName)
+      .input('Address', Address)
+      .input('ContactEmail1', ContactEmail1)
+      .input('ContactPhone1', ContactPhone1)
+      .input('ContactWebsite', ContactWebsite)
+      .input('GSTClassification', GSTClassification)
+      .input('TaxGSTINNo', TaxGSTINNo)
+      .input('Locality', Locality)
+      .execute('ProcMstCustomerUpdate');
+
+    res.json({ message: 'Customer updated successfully' });
+  } catch (error) {
+    console.error('Error updating customer data:', error.message);
+    res.status(500).json({ message: 'Error updating customer data', error: error.message });
+  }
+});
+
+router.post('/AddProduct', async (req, res) => {
+  try {
+    const pool = await connectToDB();
+    const {
+      CustomerId,
+      ProductName,
+      ProductDetail,
+      ProductCategory,
+      ProductType,
+      Price,
+    } = req.body;
+
+    const insertQuery = `
+      INSERT INTO [MstProduct] 
+      (ProductId, ProductName, Price, ProductDetail, ProductCategory, ProductType, CreatedOn)
+      VALUES 
+      (@ProductId, @ProductName, @Price, @ProductDetail, @ProductCategory, @ProductType, GETDATE());
+    `;
+
+    await pool.request()
+      .input('ProductId', sql.VarChar, CustomerId)
+      .input('ProductName', sql.VarChar, ProductName)
+      .input('Price', sql.Decimal, Price)
+      .input('ProductDetail', sql.VarChar, ProductDetail)
+      .input('ProductCategory', sql.VarChar, ProductCategory)
+      .input('ProductType', sql.VarChar, ProductType)
+      .query(insertQuery);
+
+    res.status(200).send(`Product added successfully with ID: ${CustomerId}`);
+  } catch (error) {
+    console.error('Error adding product:', error);
+    res.status(500).send('Error adding product');
+  }
+});
 
 module.exports = router;
 
