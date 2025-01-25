@@ -316,9 +316,9 @@ router.post('/UpdateCustomer', async (req, res) => {
       CustomerName,
       BusinessName,
       Address,
-      ContactEmail1,
-      ContactPhone1,
-      ContactWebsite,
+      Email,
+      Phone,
+      Website,
       GSTClassification,
       TaxGSTINNo,
       LocalityId,
@@ -334,9 +334,9 @@ router.post('/UpdateCustomer', async (req, res) => {
       .input('cCustomerName', CustomerName)
       .input('cBusinessName', BusinessName)
       .input('cAddress', Address)
-      .input('cContactEmail1', ContactEmail1)
-      .input('cContactPhone1', ContactPhone1)
-      .input('cContactWebsite', ContactWebsite)
+      .input('cContactEmail1', Email)
+      .input('cContactPhone1', Phone)
+      .input('cContactWebsite', Website)
       .input('cGSTClassification', GSTClassification)
       .input('cTaxGSTINNo', TaxGSTINNo)
       .input('cLocalityId', LocalityId)
