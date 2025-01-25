@@ -322,7 +322,7 @@ router.post('/UpdateCustomer', async (req, res) => {
       gstTreatment,
       TaxGSTINNo,
       LocalityId,
-      ProjectManagerId = '0000000000',
+      ProjectManagerId = '000000000000000',
     } = req.body;
 
     if (!CustomerId) {
