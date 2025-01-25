@@ -101,13 +101,13 @@ router.get('/UserRoles', async (req, res) => {
         [EmailId], [ContactType], [UserRoleId], [ActiveStatus], [LastUpdate], [IsNewUser], [TS]
       )
       VALUES (
-        @NextUserId, @MgrUserId, @UserName, @ShortName, @UserPwd, @MobileNo,
+        @UserId, @MgrUserId, @UserName, @ShortName, @UserPwd, @MobileNo,
         @EmailId, @ContactType, @UserRoleId, 1, @LastUpdate, 1, @TS
       )
     `;
   
       await pool.request()
-      .input('NextUserId', sql.Char, nextUserId)
+      .input('UserId', sql.Char, nextUserId)
       .input('MgrUserId', sql.Char, UserId)
         .input('UserName', sql.VarChar, UserName)
         .input('ShortName', sql.VarChar, ShortName)
