@@ -321,7 +321,7 @@ router.post('/UpdateCustomer', async (req, res) => {
       ContactWebsite,
       GSTClassification,
       TaxGSTINNo,
-      Locality,
+      LocalityId,
     } = req.body;
 
     if (!CustomerId) {
@@ -339,7 +339,7 @@ router.post('/UpdateCustomer', async (req, res) => {
       .input('cContactWebsite', ContactWebsite)
       .input('cGSTClassification', GSTClassification)
       .input('cTaxGSTINNo', TaxGSTINNo)
-      .input('cLocality', Locality)
+      .input('cLocalityId', LocalityId)
       .execute('ProcMstCustomerUpdate');
 
     res.json({ message: 'Customer updated successfully' });
